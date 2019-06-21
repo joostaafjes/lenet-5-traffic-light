@@ -38,21 +38,14 @@ def read_images(images_path: str):
         for index, color in enumerate(traffic_light_colors):
             if filename.find(color) != -1:
                 labels.append(traffic_light_categories[index])
-                # img = Image.open(images_path + '/' + filename)
-                # img = cv2.imread(images_path + '/' + filename)
-                # features.append(img)
-
                 img = load_img(images_path + '/' + filename)  # this is a PIL image
                 img.thumbnail((32, 32), Image.ANTIALIAS)
                 delta_w = 32 - img.width
                 delta_h = 32 - img.height
                 padding = (delta_w // 2, delta_h // 2, delta_w - (delta_w // 2), delta_h - (delta_h // 2))
-                img = ImageOps.expand(img, padding, fill=0)
-                # img.show()
-                # img.save('testimg.jpeg', 'JPEG')
+                img = ImageOps.expand(img, padding, fill=0) # fill with black dots
+                img.save('images-resized/{}.jpeg'.format(filename), 'JPEG')
                 x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
-                # x = x.reshape((1,) + x.shape)  # this is a Numpy array with shape (1, 3, 150, 150)
-                # x = np.expand_dims(x, axis=0)
                 features.append(x)
 
                 added = True
@@ -81,28 +74,18 @@ dataframe_train_labels = pd.DataFrame({'Label':train_labels_count[0], 'Count':tr
 print(dataframe_train_labels)
 
 # Split training data into training and validation
-# validation = {}
-# train['features'], validation['features'], train['labels'], validation['labels'] = train_test_split(train['features'], train['labels'], test_size=0.2, random_state=0)
+validation = {}
+train['features'], validation['features'], train['labels'], validation['labels'] = train_test_split(train['features'], train['labels'], test_size=0.2, random_state=0)
 
 print('# of training images:', train['features'].shape[0])
-# print('# of validation images:', validation['features'].shape[0])
+print('# of validation images:', validation['features'].shape[0])
 
 print(features.shape)
 print(labels.shape)
 
-# prepare our input features
-# Pad images with 0s
-# train['features'] = np.pad(train['features'], ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')
-# validation['features'] = np.pad(validation['features'], ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')
-# test['features'] = np.pad(test['features'], ((0, 0), (2, 2), (2, 2), (0, 0)), 'constant')
-
 print("Updated Image Shape: {}".format(train['features'][0].shape))
 
 model = keras.Sequential()
-
-# model.add(layers.Input(None, None, 3))
-
-# model.add(layers.Lambda(lambda image: ktf.image.resize_images(image, (32, 32))))
 
 model.add(layers.Lambda(lambda x: x/255.0 - 0.5, input_shape=(32,32,3))) # added
 
@@ -124,13 +107,14 @@ model.summary()
 
 model.compile(loss=keras.losses.categorical_crossentropy, optimizer=keras.optimizers.Adam(), metrics=['accuracy'])
 
-model.fit(train['features'], train['labels'], epochs=52, validation_split=0.3, shuffle=True )
+tensorboard = TensorBoard(log_dir="logs/{}".format(time()))
+model.fit(train['features'], train['labels'], epochs=52, validation_split=0.3, shuffle=True, callbacks=[tensorboard])
 
 # EPOCHS = 10
 # BATCH_SIZE = 128
 
-# X_train, y_train = train['features'], to_categorical(train['labels'])
-# X_validation, y_validation = validation['features'], to_categorical(validation['labels'])
+# X_train, y_train = train['features'], train['labels']
+# X_validation, y_validation = validation['features'], validation['labels']
 
 # train_generator = ImageDataGenerator().flow(X_train, y_train, batch_size=BATCH_SIZE)
 # validation_generator = ImageDataGenerator().flow(X_validation, y_validation, batch_size=BATCH_SIZE)
