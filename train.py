@@ -1,6 +1,9 @@
 # Load the data
 
 import gzip
+import re
+import os
+
 import numpy as np
 import pandas as pd
 from time import time
@@ -28,33 +31,44 @@ sns.set()
 traffic_light_colors = ['red', 'yellow', 'green']
 traffic_light_categories = [[1,0,0], [0,1,0], [0,0,1]]
 
+RESIZED_DIR = 'images_resized/'
+
 def read_images(images_path: str):
     files = [f for f in listdir(images_path) if isfile(join(images_path, f))]
 
     labels = []
     features = []
-    for filename in files:
-        added = False
-        for index, color in enumerate(traffic_light_colors):
-            if filename.find(color) != -1:
-                labels.append(traffic_light_categories[index])
-                img = load_img(images_path + '/' + filename)  # this is a PIL image
-                img.thumbnail((32, 32), Image.ANTIALIAS)
-                delta_w = 32 - img.width
-                delta_h = 32 - img.height
-                padding = (delta_w // 2, delta_h // 2, delta_w - (delta_w // 2), delta_h - (delta_h // 2))
-                img = ImageOps.expand(img, padding, fill=0) # fill with black dots
-                img.save('images-resized/{}.jpeg'.format(filename), 'JPEG')
-                x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
-                features.append(x)
+    for root, dirs, files in os.walk(images_path, topdown=False):
+        os.makedirs(os.path.dirname(RESIZED_DIR + root + '/'), exist_ok=True)
+        for filename in files:
+            added = False
+            for index, color in enumerate(traffic_light_colors):
+                if filename.find(color) != -1:
+                    labels.append(traffic_light_categories[index])
+                    img = load_img(root + '/' + filename)  # this is a PIL image
+                    img = crop_image(img)
+                    img.save('{}{}{}.jpeg'.format(RESIZED_DIR, root + '/', remove_ext(filename)), 'JPEG')
+                    x = img_to_array(img)  # this is a Numpy array with shape (3, 150, 150)
+                    features.append(x)
 
-                added = True
-                break
-        if not added:
-            print('Error invalid filename:', filename)
-            exit()
+                    added = True
+                    break
+            if not added:
+                print('Error invalid filename:', filename)
 
     return np.array(features), np.array(labels)
+
+def remove_ext(filename: str):
+    return re.sub(r'\.png|\.jpeg|\.jpg', '', filename, re.IGNORECASE)
+
+def crop_image(img):
+    img.thumbnail((32, 32), Image.ANTIALIAS)
+    delta_w = 32 - img.width
+    delta_h = 32 - img.height
+    padding = (delta_w // 2, delta_h // 2, delta_w - (delta_w // 2), delta_h - (delta_h // 2))
+    img = ImageOps.expand(img, padding, fill=0)  # fill with black dots
+    return img
+
 
 features, labels = read_images('images')
 

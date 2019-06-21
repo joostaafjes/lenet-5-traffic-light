@@ -18,7 +18,7 @@ def predict(image_name):
 start = time.time()
 predict('images-resized/086-0-yellow.png.jpeg')
 elapsed = time.time() - start
-print('elapsed time:', elapsed, ' ms')
+print('elapsed time:', elapsed, ' s')
 
 predict('images-resized/067-2-green.png.jpeg')
 predict('images-resized/019-0-red.png.jpeg')
