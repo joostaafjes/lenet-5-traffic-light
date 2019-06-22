@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 from time import time
 from PIL import Image, ImageOps
-import cv2
 
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
@@ -21,23 +20,23 @@ from keras.callbacks import TensorBoard
 from keras.preprocessing.image import array_to_img, img_to_array, load_img
 from keras.backend import tf as ktf
 
+from pathlib2 import Path  # python 2 backport
+
+
 from os import listdir
 from os.path import isfile, join
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set()
 
 traffic_light_colors = ['red', 'yellow', 'green']
 traffic_light_categories = [[1,0,0], [0,1,0], [0,0,1]]
 
 RESIZED_DIR = 'images_resized/'
 
-def read_images(images_path: str):
+def read_images(images_path):
     labels = []
     features = []
     for root, dirs, files in os.walk(images_path, topdown=False):
-        os.makedirs(os.path.dirname(RESIZED_DIR + root + '/'), exist_ok=True)
+        path = os.path.dirname(RESIZED_DIR + root + '/')
+        Path(path).mkdir(exist_ok=True)
         for filename in files:
             added = False
             for index, color in enumerate(traffic_light_colors):
@@ -56,13 +55,14 @@ def read_images(images_path: str):
 
     return np.array(features), np.array(labels)
 
-def remove_ext(filename: str):
+def remove_ext(filename):
     return re.sub(r'\.png|\.jpeg|\.jpg', '', filename, re.IGNORECASE)
 
 def crop_image(img):
     img.thumbnail((32, 32), Image.ANTIALIAS)
-    delta_w = 32 - img.width
-    delta_h = 32 - img.height
+    width, height = img.size
+    delta_w = 32 - width
+    delta_h = 32 - height
     padding = (delta_w // 2, delta_h // 2, delta_w - (delta_w // 2), delta_h - (delta_h // 2))
     img = ImageOps.expand(img, padding, fill=0)  # fill with black dots
     return img
@@ -97,7 +97,7 @@ print(labels.shape)
 
 print("Updated Image Shape: {}".format(train['features'][0].shape))
 
-model = keras.Sequential()
+model = Sequential()
 
 model.add(layers.Lambda(lambda x: x/255.0 - 0.5, input_shape=(32,32,3))) # added
 
