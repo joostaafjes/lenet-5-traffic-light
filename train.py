@@ -34,8 +34,6 @@ traffic_light_categories = [[1,0,0], [0,1,0], [0,0,1]]
 RESIZED_DIR = 'images_resized/'
 
 def read_images(images_path: str):
-    files = [f for f in listdir(images_path) if isfile(join(images_path, f))]
-
     labels = []
     features = []
     for root, dirs, files in os.walk(images_path, topdown=False):
