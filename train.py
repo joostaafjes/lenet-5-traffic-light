@@ -26,8 +26,8 @@ from pathlib2 import Path  # python 2 backport
 from os import listdir
 from os.path import isfile, join
 
-traffic_light_colors = ['red', 'yellow', 'green']
-traffic_light_categories = [[1,0,0], [0,1,0], [0,0,1]]
+traffic_light_colors = ['red', 'yellow', 'green', 'unknown']
+traffic_light_categories = [[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]]
 
 RESIZED_DIR = 'images_resized/'
 
