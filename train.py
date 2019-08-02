@@ -113,7 +113,7 @@ model.add(layers.Dense(units=120, activation='relu'))
 
 model.add(layers.Dense(units=84, activation='relu'))
 
-model.add(layers.Dense(units=3, activation = 'softmax'))
+model.add(layers.Dense(units=4, activation = 'softmax'))
 
 model.summary()
 

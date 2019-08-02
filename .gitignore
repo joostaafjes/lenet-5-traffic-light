@@ -107,3 +107,6 @@ venv.bak/
 images/
 images-resized/
 logs/
+
+images-orig/
+venv-python2/
